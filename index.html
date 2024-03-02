@@ -1,0 +1,31 @@
+---
+layout: default
+title: "Welcome"
+---
+<div style="width:50%">
+	<img src="assets/Corwins-Blade-Runner-Unicorn.512.png" height=64 width=64>
+</div>
+<div class="introduction">
+  <h1>hi.</h1>
+
+	<p>
+  	This is a place designed for writng the most important topics I'm most likely to forget 
+	based on a history of doing exactly that.
+	</p>
+</div>
+
+<hr>
+
+<div class="toc">
+  <h2>Posts</h2>
+  <ul class="texts">
+  {% for item in site.texts %}
+
+    <li class="text-title">
+      <a href="{{ site.baseurl }}{{ item.url }}">
+        {{ item.title }}
+      </a>
+    </li>
+  {% endfor %}
+  </ul>
+</div>
