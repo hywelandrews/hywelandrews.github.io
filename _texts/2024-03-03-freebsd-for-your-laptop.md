@@ -2,21 +2,21 @@
 layout: post
 title: FreeBSD for your laptop 
 author: Hywel
-date:   2024-02-25 01:03:42 +0700
+date:   2024-03-03 11:13:42 
 ---
 
 The last time I ran FreeBSD on a personal system was with version 4 and in the intervening years I have spent most of my time on \*nix using Debian based distros. I was inspired to return to running FreeBSD on bare metal for everyday use by posts on [c0ffee.net](https://c0ffee.net), in particular [this](https://www.c0ffee.net/blog/freebsd-on-a-laptop) and [this](https://www.c0ffee.net/blog/openbsd-on-a-laptop). Before starting, it's important to note that one of the overriding success factors in getting a pleasant FreeBSD experience will be your choice of hardware. Essentially you purchase a laptop after deciding to use FreeBSD. I went with a Lenovo Carbon X1 Gen 7, it's an Intel i7 with 8GB ram and Intel integrated graphics, it's very light and the battery lasts for a good 5 hours. The cost as a refurbished model was $150. The latops original origin was Japan so I have stickers to cover all the Kanji, but its a small price to pay for an otherwise excellent machine. 
 
 The main outstanding issue after the full FreeBSD installation is that the integrated WiFi will not work with 5Ghz based networks, although there are options to use an external wifi dongle, in my case this is not required as I already run a 2.5Ghz network for other devices at home. I will probably look at a dongle to make travelling easier with this machine.
 
-Why not explore one of the desktop ready BSD distributions? Well TrueOS, the most prominent, has ceased regular maintenance, and although there is a case for DragonFly, I was far more excited to be able to configure the OS from the base install. This led to a deeper understanding of the internals, the configuration, some of the subtleties with Linux and also some of my own assumptions as to what to invest time into and when.
+Why not explore one of the desktop ready BSD distributions? Well TrueOS, the most prominent, has ceased regular maintenance, and although there is a case for [DragonFly](https://www.dragonflybsd.org/), [Ghost](https://ghostbsd.org/) or [Nomad](https://nomadbsd.org/), I was far more excited to be able to configure the OS from the base install. This led to a deeper understanding of the internals, the configuration, some of the subtleties with Linux and also some of my own assumptions as to what to invest time into and when.
 
 ---
 
 So where do we start? I recommend downloading the FreeBSD 14 RELEASE memstick image and running 
 
 ```zsh 
-  sudo dd if=/path/to/FreeBSD14-RELEASE of=/dev/r(IDENTIFIER) bs=1m
+sudo dd if=/path/to/FreeBSD14-RELEASE of=/dev/r(IDENTIFIER) bs=1m
 ```
 
 As mentioned above the installation is self explanatory, but I did chose to use an encrypted root ZFS partition. Ensure your user belongs to the wheel, video and operator groups, otherwise you will be unable to elevate privileges or use an X Server. Log in as your user, and we can begin configuration.
@@ -59,7 +59,7 @@ drm.i915.semaphores="1"
 drm.i915.intel_iommu_enabled="1"
 ```
 
-The final aspect of power saving lies with the embedded usb devices, although from experimentation it seems there is no effect from setting some of the onboard usb devices into power saving mode. To find your usb devices run `doas usbconfig list`, you can find their current power usage listed at the end and their current `pwr` mode. To change the power mode of for example the Integrated Camera we can run `doas usbconfig -d ugen0.3 power_save` but notice that even after the mode is changed its power consumption remains the same. This may be due to the hub already switching to power saving mode although I'm not sure how to confirm.
+The final aspect of power saving lies with the embedded usb devices, although from experimentation it seems there is no effect from setting some of the onboard usb devices into power saving mode. To find your usb devices run `usbconfig list`, you can find their current power usage listed at the end and their current `pwr` mode. To change the power mode of for example the Integrated Camera we can run `usbconfig -d ugen0.3 power_save` but notice that even after the mode is changed its power consumption remains the same. This may be due to the hub already switching to power saving mode although I'm not sure how to confirm.
 
 ----
 
@@ -68,191 +68,190 @@ Configuration for the desktop
 
 First lets edit `/boot/loader.conf` for some quality of life changes when using FreeBSD as a desktop system
 
-```
-   autoboot_delay="2"
+```zsh
+autoboot_delay="2"
 
-   # these values need to be bumped up a bit for desktop usage
-   kern.maxproc="100000"
-   kern.ipc.shmseg="1024"
-   kern.ipc.shmmni="1024"
+# these values need to be bumped up a bit for desktop usage
+kern.maxproc="100000"
+kern.ipc.shmseg="1024"
+kern.ipc.shmmni="1024"
 
-   # increase default framebuffer to max resolution  
-   kern.vt.fb.default_mode="2560x1440"
-   
-   # enable the nub and the touchpad
-   hw.psm.trackpoint_support="1"
-   hw.psm.synaptics_support="1"
+# increase default framebuffer to max resolution  
+kern.vt.fb.default_mode="2560x1440"
 
-   # Enables a faster but possibly buggy implementation of soreceive
-   net.inet.tcp.soreceive_stream="1"
+# enable the nub and the touchpad
+hw.psm.trackpoint_support="1"
+hw.psm.synaptics_support="1"
 
-   # increase the network interface queue link
-   net.link.ifqmaxlen="2048"
+# Enables a faster but possibly buggy implementation of soreceive
+net.inet.tcp.soreceive_stream="1"
 
-   # enable hardware accelerated AES (can speed up TLS)
-   aesni_load="YES"
+# increase the network interface queue link
+net.link.ifqmaxlen="2048"
 
-   # Load the H-TCP algorithm. It has a more aggressive ramp-up to max
-   # bandwidth, and is optimized for high-speed, high-latency connections.
-   cc_htcp_load="YES"
+# enable hardware accelerated AES (can speed up TLS)
+aesni_load="YES"
 
-   # enable CPU firmware updates
-   cpuctl_load="YES"
+# Load the H-TCP algorithm. It has a more aggressive ramp-up to max
+# bandwidth, and is optimized for high-speed, high-latency connections.
+cc_htcp_load="YES"
 
-   # enable CPU temperature monitoring
-   coretemp_load="YES"
+# enable CPU firmware updates
+cpuctl_load="YES"
 
-   # enable LCD backlight control, ThinkPad buttons, etc
-   acpi_ibm_load="YES"
+# enable CPU temperature monitoring
+coretemp_load="YES"
 
-   # load firmware for wireless card - (Intel 8265) 
-   if_iwm_load="YES"
-   iwm8265fw_load="YES"
+# enable LCD backlight control, ThinkPad buttons, etc
+acpi_ibm_load="YES"
 
-   # filesystems, webcam driver, sound etc
-   snd_hda_load="YES":
-   cuse4bsd_load="YES"
-   fuse_load="YES"
-   libiconv_load="YES"
-   cd9660_iconv_load="YES"
-   msdosfs_iconv_load="YES"
-   tmpfs_load="YES"
+# load firmware for wireless card - (Intel 8265) 
+if_iwm_load="YES"
+iwm8265fw_load="YES"
+
+# filesystems, webcam driver, sound etc
+snd_hda_load="YES":
+cuse4bsd_load="YES"
+fuse_load="YES"
+libiconv_load="YES"
+cd9660_iconv_load="YES"
+msdosfs_iconv_load="YES"
+tmpfs_load="YES"
 ```
 
 Next we make the following changes in `/etc/rc.conf`
 
-```
-  # My machines folllow the Beverly Hills Cop nomenclature
-  hostname="foley.local"
+```zsh
+# My machines folllow the Beverly Hills Cop nomenclature
+hostname="foley.local"
 
-  # wireless config
-  wlans_iwm0="wlan0"
-  ifconfig_wlan0="WPA DHCP powersave"
-  ifconfig_wlan0_ipv6="inet6 accept_rtadv"
+# wireless config
+wlans_iwm0="wlan0"
+ifconfig_wlan0="WPA DHCP powersave"
+ifconfig_wlan0_ipv6="inet6 accept_rtadv"
 
-  # Zeroconf DNS enable
-  avahi_daemon_enable="YES"
-  avahi_dnsconfig_enable="YES"
+# Zeroconf DNS enable
+avahi_daemon_enable="YES"
+avahi_dnsconfig_enable="YES"
 
-  # disable moused for now, there is native support in X and Wayland
-  moused_nondefault_enable="NO"
+# disable moused for now, there is native support in X and Wayland
+moused_nondefault_enable="NO"
 
-  # clear tmp on boot 
-  clear_tmp_enable="YES"
+# clear tmp on boot 
+clear_tmp_enable="YES"
 
-  # don't let syslog open network sockets
-  syslogd_flags="-ss"
+# don't let syslog open network sockets
+syslogd_flags="-ss"
 
-  # disable sendmail daemon
-  sendmail_enable="NONE"
+# disable sendmail daemon
+sendmail_enable="NONE"
 
-  # disable kernal crash dumps
-  dumpdev="NO"
+# disable kernal crash dumps
+dumpdev="NO"
 
-  # sync clock on boot
-  ntpd_enable="YES" 
-  ntpd_flags="-g"
+# sync clock on boot
+ntpd_enable="YES" 
+ntpd_flags="-g"
 
-  # enable dbus
-  dbus_enable="YES"
+# enable dbus
+dbus_enable="YES"
 
-  # enable bluetooth
-  hcsecd_enable="YES"
-  sdpd_enable="YES"
+# enable bluetooth
+hcsecd_enable="YES"
+sdpd_enable="YES"
 
-  # enable printing
-  cupsd_enable="YES"
+# enable printing
+cupsd_enable="YES"
 
-  # enable ZFS fs
-  zfs_enable="YES"
+# enable ZFS fs
+zfs_enable="YES"
 
-  # enable webcam (works fine in chrome)
-  webcamd_enable="YES"
+# enable webcam (works fine in chrome)
+webcamd_enable="YES"
 
-  # enable drm-next-kmd for video
-  kld_list="i915kms"
-  seatd_enable="YES"
+# enable drm-next-kmd for video
+kld_list="i915kms"
+seatd_enable="YES"
 
-  # enable wireguard for vpn
-  wireguard_enable="YES"
-  wireguard_interfaces="wg0"
+# enable wireguard for vpn
+wireguard_enable="YES"
+wireguard_interfaces="wg0"
 ```
 
 The above configuration assumes the following packages have been installed for various daemons:
 
 ```
-   graphics/drm-kmod
-   print/cups
-   multimedia/webcamd
-   net/avahi-app
-   net/nss_mdns
-   net/wireguard-tools
+graphics/drm-kmod
+print/cups
+multimedia/webcamd
+net/avahi-app
+net/nss_mdns
+net/wireguard-tools
 ```
 
 Next append UTF-8 as our default encoding to the default profile in `/etc/login.conf`
 
+```zsh
+default:\
+  :charset=UTF-8:\
+  :lang=en_GB.UTF-8:
 ```
-  default:\
-	  :charset=UTF-8:\
-	  :lang=en_GB.UTF-8:
-  ```
 
 Rebuild the login database after editing the above file
 
 ```
-   cap_mkdb /etc/login.conf
+cap_mkdb /etc/login.conf
 ```   
 
 Finally we further tune some sysctl variables to enhance the experience of FreeBSD on the desktop, expanding the amount of shared memory, increasing the process schedule threshold and also increasing the amount of simultaneous files which can be open to something sane.
 
-```
+```zsh
+vfs.zfs.min_auto_ashift=12
 
-  vfs.zfs.min_auto_ashift=12
+# allow users to mount disks without root permissions
+vfs.usermount=1
 
-  # allow users to mount disks without root permissions
-  vfs.usermount=1
+# make the desktop retain responsiveness under heavy load
+kern.sched.preempt_thresh=224
 
-  # make the desktop retain responsiveness under heavy load
-  kern.sched.preempt_thresh=224
+# shared memory needed for chromium
+kern.ipc.shm_allow_removed=1
 
-  # shared memory needed for chromium
-  kern.ipc.shm_allow_removed=1
+# bump up maximum number of open files
+kern.maxfiles=200000
 
-  # bump up maximum number of open files
-  kern.maxfiles=200000
-  
-  # enable IPv6 autoconfiguration
-  net.inet6.ip6.accept_rtadv=1
+# enable IPv6 autoconfiguration
+net.inet6.ip6.accept_rtadv=1
 
-  # suspend on lid close
-  hw.acpi.lid_switch_state=S3
+# suspend on lid close
+hw.acpi.lid_switch_state=S3
 
-  # tweeks to boost network performance over longer pipes
-  net.inet.tcp.cc.algorithm=htcp
-  net.inet.tcp.cc.htcp.adaptive_backoff=1
-  net.inet.tcp.cc.htcp.rtt_scaling=1
-  net.inet.tcp.rfc6675_pipe=1
-  net.inet.tcp.syncookies=0
-  net.inet.tcp.nolocaltimewait=1
-  kern.ipc.soacceptqueue=1024
-  kern.ipc.maxsockbuf=8388608
-  kern.ipc.maxsockbuf=2097152
-  net.inet.tcp.sendspace=262144
-  net.inet.tcp.recvspace=262144
-  net.inet.tcp.sendbuf_max=16777216
-  net.inet.tcp.recvbuf_max=16777216
-  net.inet.tcp.sendbuf_inc=32768
-  net.inet.tcp.recvbuf_inc=65536
-  net.local.stream.sendspace=16384
-  net.local.stream.recvspace=16384
-  net.inet.raw.maxdgram=16384
-  net.inet.raw.recvspace=16384
-  net.inet.tcp.abc_l_var=44
-  net.inet.tcp.initcwnd_segments=44
-  net.inet.tcp.mssdflt=1448
-  net.inet.tcp.minmss=524
-  net.inet.ip.intr_queue_maxlen=2048
-  net.route.netisr_maxqlen=2048
+# tweeks to boost network performance over longer pipes
+net.inet.tcp.cc.algorithm=htcp
+net.inet.tcp.cc.htcp.adaptive_backoff=1
+net.inet.tcp.cc.htcp.rtt_scaling=1
+net.inet.tcp.rfc6675_pipe=1
+net.inet.tcp.syncookies=0
+net.inet.tcp.nolocaltimewait=1
+kern.ipc.soacceptqueue=1024
+kern.ipc.maxsockbuf=8388608
+kern.ipc.maxsockbuf=2097152
+net.inet.tcp.sendspace=262144
+net.inet.tcp.recvspace=262144
+net.inet.tcp.sendbuf_max=16777216
+net.inet.tcp.recvbuf_max=16777216
+net.inet.tcp.sendbuf_inc=32768
+net.inet.tcp.recvbuf_inc=65536
+net.local.stream.sendspace=16384
+net.local.stream.recvspace=16384
+net.inet.raw.maxdgram=16384
+net.inet.raw.recvspace=16384
+net.inet.tcp.abc_l_var=44
+net.inet.tcp.initcwnd_segments=44
+net.inet.tcp.mssdflt=1448
+net.inet.tcp.minmss=524
+net.inet.ip.intr_queue_maxlen=2048
+net.route.netisr_maxqlen=2048
 ```
 
 Rebooting your system will allow for the kernel changes made to take effect, in addition ensure you have TPM disabled in your BIOS if you find suspend on lid close does not work.
@@ -260,28 +259,30 @@ Rebooting your system will allow for the kernel changes made to take effect, in 
 Display servers
 ===============
 
-My original workflow for this machine was just to live with X11 and launch GUI applications into separate sessions, this just requires installing `pkg install xorg` and as mentioned above ensuring your user is part of the video group.
+My original workflow for this machine was just to live with X11 and launch GUI applications into separate sessions, this only requires installing `pkg install xorg` and as mentioned above ensuring your user is part of the video group.
 
-There are a limited number of fonts included with a base FreeBSD install, and just like suggested on c0ffee.net terminus is a solid addition, along with these other monospaced fonts
+There are a limited number of fonts included with a base FreeBSD install, and just like suggested in [c0ffee.net](https://www.c0ffee.net/blog/freebsd-on-a-laptop) terminus is a solid addition, along with these other monospaced fonts
 
 ```
-  x11-fonts/bitstream-vera
-  x11-fonts/droid-fonts-ttf
-  x11-fonts/inconsolata-ttf
-  x11-fonts/liberation-fonts-ttf
-  x11-fonts/ubuntu-font
-  x11-fonts/webfonts
-  x11-fonts/terminus-font
-  x11-fonts/terminus-ttf
+x11-fonts/bitstream-vera
+x11-fonts/droid-fonts-ttf
+x11-fonts/ubuntu-font
+x11-fonts/inconsolata-ttf
+x11-fonts/liberation-fonts-ttf
+x11-fonts/webfonts
+x11-fonts/terminus-font
+x11-fonts/terminus-ttf
+x11-fonts/tlwg-ttf
+x11-fonts/powerline-fonts
 ```
 
-After installing X11 and our fonts we can move onto installing wayland, a new display server which will be using as the base for our window manager sway. A significant differences with wayland is that it is just a protocol and it will be the compositor which will provide the display server. Install with `pkg install wayland seatd` we need to include seatd here as this will allow non-root access to certain devices.
+After installing X11 and our fonts we can move onto installing wayland, a new display protocol which will be using as the base for our window manager sway. A significant difference with wayland is that as it is just a protocol, it will be the compositor which will provide the display server. Install with `pkg install wayland seatd` we need to include seatd here as this will allow non-root access to certain devices.
 
 Lastly we need to ensure we have the correct environment variables set for wayland
 
-```
-   XDG_RUNTIME_DIR=/tmp
-   XDG_SESSION_TYPE=wayland
+```zsh
+XDG_RUNTIME_DIR=/tmp
+XDG_SESSION_TYPE=wayland
 ```
 
 ---
@@ -293,7 +294,7 @@ Sway is a new compositor for wayland using the same window tiling philosophy as 
 
 Create a new config at `~/.config/sway/config`, here is what I use, there are no significant changes from the default provided by sway, except for the separation of the status bar to it's own config file 
 
-```
+```zsh
 xwayland force
 
 ### Variables
@@ -465,7 +466,7 @@ include /usr/local/etc/sway/config.d/*
 
 My status bar is configured to show volume, battery, CPU temperature and the time, it's formatted using `$HOME/.config/sway/status`
 
-```
+```bash
 #!/usr/bin/env bash
 
 # Date
@@ -482,4 +483,55 @@ battery=$(apm | grep "Remaining battery life: " | cut -f 2 -d ":" | head -1)
 
 # Status bar
 echo "Volume L/R" $volume "|" $battery "|" $cpu°C "|" $date
+```
+  
+Login Managers (or my struggle with them)
+========================================
+
+I was unable to get a login manager to work with FreeBSD + sway, I attempted to use sddm and [ly](https://github.com/fairyglade/ly) but both failed to integrate correctly, and for the time being I've fallen back to launching immediately from the shell using the below from my `.zshrc`.
+
+```zsh
+if tty | grep -q '/dev/ttyv0'; then
+	sway -c ~/.config/sway/config
+fi
+```
+
+One final note is the lack of a lockscreen on opening the laptop lid, although the default sway config shared above does contain a line for triggering `swaylock` on the `before-sleep` event, this does not take effect and at present I have the great user experience but terrible security without this.
+
+Applications
+===========
+
+Below is the list of applications I run on my machine, it's predominately used for writing (Vim), programming (VSCode, gcc, rust), publishing this blog (Ruby) and consuming the internet (chromium). 
+
+```
+www/chromium
+security/doas
+graphics/freeimage
+lang/gawk
+lang/gcc
+devel/git
+devel/gmake
+textproc/gsed
+misc/help2man
+sysutils/hwstat
+textproc/jq
+www/npm
+shells/ohmyzsh
+dns/p5-Net-Bonjour
+devel/patch
+misc/py-powerline-status
+sysutils/py-zfs-autobackup
+lang/python
+lang/ruby31
+devel/ruby-gems
+lang/rust
+audio/spotifyd
+sysutils/tmux
+converters/unix2dos
+editors/vim
+editors/vscode
+ftp/wget
+net-mgmt/wifimgr
+sysutils/yadm
+shells/zsh
 ```
