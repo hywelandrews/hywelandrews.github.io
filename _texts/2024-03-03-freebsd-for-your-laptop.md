@@ -5,9 +5,9 @@ author: Hywel
 date:   2024-03-03 11:13:42 
 ---
 
-The last time I ran FreeBSD on a personal system was with version 4 and in the intervening years I have spent most of my time on \*nix using Debian based distros. I was inspired to return to running FreeBSD on bare metal for everyday use by posts on [c0ffee.net](https://c0ffee.net), in particular [this](https://www.c0ffee.net/blog/freebsd-on-a-laptop) and [this](https://www.c0ffee.net/blog/openbsd-on-a-laptop). Before starting, it's important to note that one of the overriding success factors in getting a pleasant FreeBSD experience will be your choice of hardware. Essentially you purchase a laptop after deciding to use FreeBSD. I went with a Lenovo Carbon X1 Gen 7, it's an Intel i7 with 8GB ram and Intel integrated graphics, it's very light and the battery lasts for a good 5 hours. The cost as a refurbished model was $150. The latops original origin was Japan so I have stickers to cover all the Kanji, but its a small price to pay for an otherwise excellent machine. 
+The last time I ran FreeBSD on a personal system was with version 4 and in the intervening years I have spent most of my time on \*nix using Debian based distros. I was inspired to return to running FreeBSD on bare metal for everyday use by posts on [c0ffee.net](https://c0ffee.net), in particular [this](https://www.c0ffee.net/blog/freebsd-on-a-laptop) and [this](https://www.c0ffee.net/blog/openbsd-on-a-laptop). Before starting, it's important to note that one of the overriding success factors in getting a pleasant FreeBSD experience will be your choice of hardware. Essentially you purchase a laptop after deciding to use FreeBSD. I went with a Lenovo Carbon X1 Gen 7, it's an Intel i7 with 8GB ram and Intel integrated graphics, it's very light and the battery lasts for a good 5 hours. The cost as a refurbished model was $200. The laptops original origin was Japan so I have stickers to cover all the Kanji, but its a small price to pay for an otherwise excellent machine. 
 
-The main outstanding issue after the full FreeBSD installation is that the integrated WiFi will not work with 5Ghz based networks, although there are options to use an external wifi dongle, in my case this is not required as I already run a 2.5Ghz network for other devices at home. I will probably look at a dongle to make travelling easier with this machine.
+The main outstanding issue after the full FreeBSD installation is that the integrated WiFi will not work with 5Ghz based networks, although there are options to use an external wifi dongle, in my case this is not required as I already run a 2.5Ghz network for other devices at home. I will probably look at a dongle to make travelling easier with this machine, along with configuring tethering between my iPhone and FreeBSD via USB.   
 
 Why not explore one of the desktop ready BSD distributions? Well TrueOS, the most prominent, has ceased regular maintenance, and although there is a case for [DragonFly](https://www.dragonflybsd.org/), [Ghost](https://ghostbsd.org/) or [Nomad](https://nomadbsd.org/), I was far more excited to be able to configure the OS from the base install. This led to a deeper understanding of the internals, the configuration, some of the subtleties with Linux and also some of my own assumptions as to what to invest time into and when.
 
@@ -256,12 +256,14 @@ net.route.netisr_maxqlen=2048
 
 Rebooting your system will allow for the kernel changes made to take effect, in addition ensure you have TPM disabled in your BIOS if you find suspend on lid close does not work.
 
+---
+
 Display servers
 ===============
 
-My original workflow for this machine was just to live with X11 and launch GUI applications into separate sessions, this only requires installing `pkg install xorg` and as mentioned above ensuring your user is part of the video group.
+My original workflow for this machine was just to live with X11 and launch GUI applications into separate sessions, this only requires installing `pkg install xorg` and as mentioned above ensuring your user is part of the video group. This setup lasted for a couple of weeks; the ultimate need for a proper window manager became apparent as the configurations for them to work in a vanilla X Server always felt fragile. 
 
-There are a limited number of fonts included with a base FreeBSD install, and just like suggested in [c0ffee.net](https://www.c0ffee.net/blog/freebsd-on-a-laptop) terminus is a solid addition, along with these other monospaced fonts
+There are a limited number of fonts included with a base FreeBSD install, and just like suggested in [c0ffee.net](https://www.c0ffee.net/blog/freebsd-on-a-laptop) terminus is a good monospaced addition, along with these other fonts
 
 ```
 x11-fonts/bitstream-vera
@@ -276,7 +278,7 @@ x11-fonts/tlwg-ttf
 x11-fonts/powerline-fonts
 ```
 
-After installing X11 and our fonts we can move onto installing wayland, a new display protocol which will be using as the base for our window manager sway. A significant difference with wayland is that as it is just a protocol, it will be the compositor which will provide the display server. Install with `pkg install wayland seatd` we need to include seatd here as this will allow non-root access to certain devices.
+After installing X11 and our fonts  we can move onto installing wayland, a new display protocol which will be using as the base for our window manager sway. A significant difference with wayland is that as it is just a protocol, it will be the compositor which will provide the display server. Install with `pkg install wayland seatd` we need to include `seatd` here as this will allow non-root access to certain devices.
 
 Lastly we need to ensure we have the correct environment variables set for wayland
 
@@ -290,9 +292,9 @@ XDG_SESSION_TYPE=wayland
 Window Managers
 ===============
 
-Sway is a new compositor for wayland using the same window tiling philosophy as i3. First we install the following packages for a pleasant experience `pkg install way swayidle swaylock-effects alacritty dmenu-wayland dmenu` I've included alacritty here as the terminal emulator as I think its one of the better options, but replace this with your preference.
+Sway is a new compositor for wayland using the same window tiling philosophy as i3. First we install the following packages for a pleasant experience `pkg install sway swayidle swaylock-effects alacritty dmenu-wayland dmenu`. I've included alacritty here as I think its one of the better terminal emulators, but replace this with your preference.
 
-Create a new config at `~/.config/sway/config`, here is what I use, there are no significant changes from the default provided by sway, except for the separation of the status bar to it's own config file 
+Create a new config at `~/.config/sway/config`, my configuration has no significant changes from the default provided by sway. I add bindings to control the audio mixer from the specific Lenovo media keys along with the separation of the status bar to it's own config file. 
 
 ```zsh
 xwayland force
@@ -315,6 +317,13 @@ set $lock swaylock -f -c 000000 --clock
 # was run on.
 set $menu dmenu_path | dmenu | xargs swaymsg exec --
 
+# Remove all borders from applications
+default_border none
+
+# Stablish gaps between windows and from the screen edge
+gaps inner 5
+gaps outer 1
+
 ### Output configuration
 output "OwlStation" mode 1920x1080@60hz position 1920,0
 output * bg /home/hywel/freebsd-desktop-background.jpg fill
@@ -327,7 +336,14 @@ exec swayidle -w \
     timeout 300 'swaylock -f -c 000000 --clock' \
     timeout 600 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"' \
   before-sleep 'swaylock -f -c 000000'
-  
+
+# Custom
+bindsym XF86AudioRaiseVolume exec mixer -f /dev/mixer0 vol=+0.10
+bindsym XF86AudioLowerVolume exec mixer -f /dev/mixer0 vol=-0.10
+
+# Lock the screen
+bindsym $mod+Shift+z exec $lock
+
 # Start a terminal
 bindsym $mod+Return exec $term
 
@@ -337,10 +353,6 @@ bindsym $mod+Shift+q kill
 # Start your launcher
 bindsym $mod+d exec $menu
 
-# Drag floating windows by holding down $mod and left mouse button.
-# Resize them with right mouse button + $mod.
-# Despite the name, also works for non-floating windows.
-# Change normal to inverse to use left mouse button for resizing and right
 # mouse button for dragging.
 floating_modifier $mod normal
 
@@ -427,16 +439,11 @@ bindsym $mod+Shift+minus move scratchpad
 bindsym $mod+minus scratchpad show
 
 mode "resize" {
-    # left will shrink the containers width
-    # right will grow the containers width
-    # up will shrink the containers height
-    # down will grow the containers height
     bindsym $left resize shrink width 10px
     bindsym $down resize grow height 10px
     bindsym $up resize shrink height 10px
     bindsym $right resize grow width 10px
 
-    # Ditto, with arrow keys
     bindsym Left resize shrink width 10px
     bindsym Down resize grow height 10px
     bindsym Up resize shrink height 10px
@@ -464,27 +471,40 @@ bar {
 include /usr/local/etc/sway/config.d/*
 ```
 
-My status bar is configured to show volume, battery, CPU temperature and the time, it's formatted using `$HOME/.config/sway/status`
+My status bar is configured to show language, network, volume, battery, CPU temperature and time, it's formatted using `$HOME/.config/sway/status`, and also requires installing `x11-fonts/noto-emoji` for the icons.
 
 ```bash
+
 #!/usr/bin/env bash
 
-# Date
-date=$(date +'%Y-%m-%d %I:%M:%S %p')
+# Language
+language=$(swaymsg -r -t get_inputs | awk '/1:1:AT_Translated_Set_2_keyboard/;/xkb_active_layout_name/' | grep "xkb_active_layout_name" | awk -F '"' '{print $4}' | head -1)
 
-# CPU temp
-cpu=$(hwstat | grep "tz0" | cut -c 10,13)
+# Network
+network=$(ifconfig wlan0 | grep "status" -i | grep "associated" -i | tr -d "[:blank:]" )
 
-# Alsa master volume
-volume=$(mixer vol.volume | cut -f 2 -d "=")
+if [ "$network" == "status:associated" ]; then
+    network_ssid=$(ifconfig wlan0 | grep ssid -i | cut -d " " -f 2,2)
+else
+    network_ssid="Disconnected"
+fi
+
+# Master volume
+volume=$(mixer vol | sed 's/.*s*\t*s* *s*://' | head -1 | xargs -n 1 bash -c 'echo "$1 * 100.00" | bc' args | cut -d . -f 1,3)
 
 # Battery
 battery=$(apm | grep "Remaining battery life: " | cut -f 2 -d ":" | head -1)
 
+# CPU temp
+cpu=$(hwstat | grep "tz0" | cut -c 10,13)
+
+# Date
+date=$(date +'%Y-%m-%d %I:%M:%S %p')
+
 # Status bar
-echo "Volume L/R" $volume "|" $battery "|" $cpu°C "|" $date
+echo ⌨️ $language 📡 $network_ssid 🔊 $volume% ⚡ $battery 🌡️ $cpu°C "|" $date
 ```
-  
+
 Login Managers (or my struggle with them)
 ========================================
 
@@ -496,12 +516,12 @@ if tty | grep -q '/dev/ttyv0'; then
 fi
 ```
 
-One final note is the lack of a lockscreen on opening the laptop lid, although the default sway config shared above does contain a line for triggering `swaylock` on the `before-sleep` event, this does not take effect and at present I have the great user experience but terrible security without this.
+One final note is the lack of a lockscreen on opening the laptop lid. The default sway config shared above does contain a line for triggering `swaylock` on the `before-sleep` event, but this does not take effect for me, and I have to ensure to use my lock shortcut `$mod + Shift + z` instead. 
 
 Applications
 ===========
 
-Below is the list of applications I run on my machine, it's predominately used for writing (Vim), programming (VSCode, gcc, rust), publishing this blog (Ruby) and consuming the internet (chromium). 
+Below is the list of applications I run on my machine, it's predominately used for writing (Vim), programming (VSCode, gcc, rust), publishing this blog (Ruby) and consuming an unhealthy amount of internet (chromium). 
 
 ```
 www/chromium
@@ -525,7 +545,6 @@ lang/python
 lang/ruby31
 devel/ruby-gems
 lang/rust
-audio/spotifyd
 sysutils/tmux
 converters/unix2dos
 editors/vim
