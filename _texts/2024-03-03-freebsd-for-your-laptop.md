@@ -7,7 +7,7 @@ date:   2024-03-03 11:13:42
 
 The last time I ran FreeBSD on a personal system was with version 4 and in the intervening years I have spent most of my time on \*nix using Debian based distros. I was inspired to return to running FreeBSD on bare metal for everyday use by posts on [c0ffee.net](https://c0ffee.net), in particular [this](https://www.c0ffee.net/blog/freebsd-on-a-laptop) and [this](https://www.c0ffee.net/blog/openbsd-on-a-laptop). Before starting, it's important to note that one of the overriding success factors in getting a pleasant FreeBSD experience will be your choice of hardware. Essentially you purchase a laptop after deciding to use FreeBSD. I went with a Lenovo Carbon X1 Gen 7, it's an Intel i7 with 8GB ram and Intel integrated graphics, it's very light and the battery lasts for a good 5 hours. The cost as a refurbished model was $200. The laptops original origin was Japan so I have stickers to cover all the Kanji, but its a small price to pay for an otherwise excellent machine. 
 
-The main outstanding issue after the full FreeBSD installation is that the integrated WiFi will not work with 5Ghz based networks, although there are options to use an external wifi dongle, in my case this is not required as I already run a 2.5Ghz network for other devices at home. I will probably look at a dongle to make travelling easier with this machine, along with configuring tethering between my iPhone and FreeBSD via USB.   
+The main outstanding issue after the full FreeBSD installation is the WiFi stack does not support 802.11ac/ax networks, one option for faster mobile internet speeds has been to configure tethering between my iPhone and FreeBSD via USB.   
 
 Why not explore one of the desktop ready BSD distributions? Well TrueOS, the most prominent, has ceased regular maintenance, and although there is a case for [DragonFly](https://www.dragonflybsd.org/), [Ghost](https://ghostbsd.org/) or [Nomad](https://nomadbsd.org/), I was far more excited to be able to configure the OS from the base install. This led to a deeper understanding of the internals, the configuration, some of the subtleties with Linux and also some of my own assumptions as to what to invest time into and when.
 
@@ -60,6 +60,37 @@ drm.i915.intel_iommu_enabled="1"
 ```
 
 The final aspect of power saving lies with the embedded usb devices, although from experimentation it seems there is no effect from setting some of the onboard usb devices into power saving mode. To find your usb devices run `usbconfig list`, you can find their current power usage listed at the end and their current `pwr` mode. To change the power mode of for example the Integrated Camera we can run `usbconfig -d ugen0.3 power_save` but notice that even after the mode is changed its power consumption remains the same. This may be due to the hub already switching to power saving mode although I'm not sure how to confirm.
+
+----
+
+Networking
+=========
+
+iwm comes configured for the kernel in base, and the below addition to `/etc/rc.conf` is all that is required.
+
+```zsh
+# wireless config
+wlans_iwm0="wlan0"
+ifconfig_wlan0="WPA DHCP powersave"
+ifconfig_wlan0_ipv6="inet6 accept_rtadv"
+```
+
+And then in `/etc/wpa_supplicant.conf`
+
+```zsh
+ctrl_interface=/var/run/wpa_supplicant
+eapol_version=2
+ap_scan=1
+fast_reauth=1
+
+network={
+  ssid="PrettyFlyForAWiFi"
+  psk="secret"
+  priority=5
+}
+```
+
+`doas service NETWORKING restart` to bring our wifi stack up, later I use `wifimgr` a GUI application to manage the multitude of WiFi hotspots I connect to. 
 
 ----
 
@@ -124,11 +155,6 @@ Next we make the following changes in `/etc/rc.conf`
 ```zsh
 # My machines folllow the Beverly Hills Cop nomenclature
 hostname="foley.local"
-
-# wireless config
-wlans_iwm0="wlan0"
-ifconfig_wlan0="WPA DHCP powersave"
-ifconfig_wlan0_ipv6="inet6 accept_rtadv"
 
 # Zeroconf DNS enable
 avahi_daemon_enable="YES"
