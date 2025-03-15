@@ -2,21 +2,21 @@
 layout: post
 title: FreeBSD for your laptop 
 author: Hywel
-date:   2024-03-03 11:13:42 
+date:   2025-03-03 11:13:42 
 ---
 
-The last time I ran FreeBSD on a personal system was with version 4 and in the intervening years I have spent most of my time on \*nix using Debian based distros. I was inspired to return to running FreeBSD on bare metal for everyday use by posts on [c0ffee.net](https://c0ffee.net), in particular [this](https://www.c0ffee.net/blog/freebsd-on-a-laptop) and [this](https://www.c0ffee.net/blog/openbsd-on-a-laptop). Before starting, it's important to note that one of the overriding success factors in getting a pleasant FreeBSD experience will be your choice of hardware. Essentially you purchase a laptop after deciding to use FreeBSD. I went with a Lenovo Carbon X1 Gen 7, it's an Intel i7 with 8GB ram and Intel integrated graphics, it's very light and the battery lasts for a good 5 hours. The cost as a refurbished model was $200. The laptops original origin was Japan so I have stickers to cover all the Kanji, but its a small price to pay for an otherwise excellent machine. 
+The last time I ran FreeBSD on a personal system was with version 4 and in the intervening years I have spent most of my time on \*nix using Debian based distros. I was inspired to return to running FreeBSD on bare metal for everyday use by posts on [c0ffee.net](https://c0ffee.net), in particular [this](https://www.c0ffee.net/blog/freebsd-on-a-laptop) and [this](https://www.c0ffee.net/blog/openbsd-on-a-laptop). It's important to note that one of the overriding success factors in getting a pleasant FreeBSD experience will be your choice of hardware. Essentially you purchase a laptop after deciding to use FreeBSD. I went with a Lenovo Carbon X1 Gen 7, it's an Intel i7 with 8GB ram and Intel integrated graphics, it's very light and the battery lasts for a good 5 hours. The cost as a refurbished model was $200. The laptops original origin was Japan so I have stickers to cover all the Kanji, but its a small inconvenience for an otherwise excellent machine. 
 
-The main outstanding issue after the full FreeBSD installation is the WiFi stack does not support 802.11ac/ax networks, one option for faster mobile internet speeds has been to configure tethering between my iPhone and FreeBSD via USB.   
+The main outstanding issue after installation is the WiFi stack does not support 802.11ac/ax networks at full speed; one option for faster mobile internet speeds has been to configure tethering between my iPhone and FreeBSD via USB.   
 
 Why not explore one of the desktop ready BSD distributions? Well TrueOS, the most prominent, has ceased regular maintenance, and although there is a case for [DragonFly](https://www.dragonflybsd.org/), [Ghost](https://ghostbsd.org/) or [Nomad](https://nomadbsd.org/), I was far more excited to be able to configure the OS from the base install. This led to a deeper understanding of the internals, the configuration, some of the subtleties with Linux and also some of my own assumptions as to what to invest time into and when.
 
 ---
 
-So where do we start? I recommend downloading the FreeBSD 14 RELEASE memstick image and running 
+So where do we start? I recommend downloading the FreeBSD 14.2 RELEASE memstick image and running 
 
 ```zsh 
-sudo dd if=/path/to/FreeBSD14-RELEASE of=/dev/r(IDENTIFIER) bs=1m
+sudo dd if=/path/to/FreeBSD-14.2-RELEASE of=/dev/r(IDENTIFIER) bs=1m
 ```
 
 As mentioned above the installation is self explanatory, but I did chose to use an encrypted root ZFS partition. Ensure your user belongs to the wheel, video and operator groups, otherwise you will be unable to elevate privileges or use an X Server. Log in as your user, and we can begin configuration.
