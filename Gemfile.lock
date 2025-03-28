@@ -291,6 +291,7 @@ DEPENDENCIES
   http_parser.rb (~> 0.6.0)
   jekyll-feed (~> 0.6)
   jekyll-seo-tag
+  jekyll-sitemap
   kramdown-parser-gfm
   rb-kqueue (>= 0.2)
   tzinfo (>= 1, < 3)

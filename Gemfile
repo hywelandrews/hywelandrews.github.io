@@ -48,3 +48,5 @@ gem "webrick", "~> 1.8"
 gem "ed.", "~> 1.3"
 
 gem 'jekyll-seo-tag'
+
+gem 'jekyll-sitemap'

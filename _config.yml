@@ -19,7 +19,7 @@ email: hywel@team16.co.uk
 description: >- # this means to ignore newlines until "baseurl:"
   Thoughts on FreeBSD and Systems Engineering.
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. http://example.com
+url: "https://hywelandrews.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: owlandrews 
 github_username:  hywelandrews
 google_analytics: G-MZ8818G48F
@@ -43,6 +43,7 @@ theme: ed.
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
+  - jekyll-sitemap
 
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
