@@ -1,8 +1,6 @@
 <head prefix="og: http://ogp.me/ns#; dc: http://purl.org/dc/terms/#">
   {% capture resource_url %}{{ site.url }}{{ site.baseurl }}{{ page.url }}{% endcapture %}
   {% capture directory_url %}{{ site.url }}{{ site.baseurl }}{% endcapture %}
-  <!-- Canonical link to help search engines -->
-  <link rel="canonical" href="{{ resource_url }}" />
 
   <!-- Basic meta elements -->
   <meta charset="utf-8" />
@@ -54,5 +52,5 @@
   <!-- RSS -->
   <link rel="alternate" type="application/rss+xml" title="RSS" href="{{ directory_url }}/atom.xml" />
   {% include google-analytics.html %}	
-  
+  {% seo %}
 </head>
