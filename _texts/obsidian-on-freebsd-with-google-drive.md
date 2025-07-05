@@ -1,13 +1,13 @@
 ---
-layout: post 
-title: "Obsidian on FreeBSD with Google Drive"
+layout: post
+title: Obsidian on FreeBSD with Google Drive
 author: Hywel
 date: 2025-06-28 11:19:42
 share: "true"
 ---
-FreeBSD provides a repository for user-space application binaries, which can be managed with [pkg](https://docs.freebsd.org/en/books/handbook/ports/#pkgng-intro) tools. It's a fantastic base of software, and one of the main reasons I choose FreeBSD over say OpenBSD (along with its speed), but there are some caveats; mostly to allow you, the user, the most customisation and to align with the FreeBSD release process.
+ FreeBSD provides a repository for user-space application binaries, which can be managed with [pkg](https://docs.freebsd.org/en/books/handbook/ports/#pkgng-intro) tools. It's a fantastic base of software, and one of the main reasons I choose FreeBSD over say OpenBSD (along with its speed), but there are some caveats; mostly to allow you, the user, the most customisation and to align with the FreeBSD release process.
 
-If you followed [Freebsd for your laptop](/texts/FreeBSD-for-your-laptop) you will have installed the STABLE quarterly release version (as opposed to CURRENT) and therefore are tacked to the quarterly ports repository. This is great for stability, this branch only receives security and hot-fixes and is then sync'd to latest before the release in the next quarter. A desktop system may have essential applications which depend on some of the heaviest and therefore flakiest dependencies in the ports tree however, namely electron. For my development machine, I rely on `sway`, `vscode`, `chromium`, `wifimgr`, `darktable` and `Qalculate`. There have been multiple times when `vscode` has fallen out of the ports tree, and on the last upgrade to FreeBSD 14.2, with it once again gone (and this time for three months until the next cut from latest) it was time to [switch](https://docs.freebsd.org/en/books/handbook/ports/#pkgng-intro) to the latest branch. The updates will come thick and fast, but with careful locking, you can be in a similar position as with quarterly, but always able to fetch fixes and resolutions to fallouts, along with being closer to the latest versions.
+If you followed [Freebsd for your laptop](/texts/freebsd-for-your-laptop) you will have installed the STABLE quarterly release version (as opposed to CURRENT) and therefore are tacked to the quarterly ports repository. This is great for stability, this branch only receives security and hot-fixes and is then sync'd to latest before the release in the next quarter. A desktop system may have essential applications which depend on some of the heaviest and therefore flakiest dependencies in the ports tree however, namely electron. For my development machine, I rely on `sway`, `vscode`, `chromium`, `wifimgr`, `darktable` and `Qalculate`. There have been multiple times when `vscode` has fallen out of the ports tree, and on the last upgrade to FreeBSD 14.2, with it once again gone (and this time for three months until the next cut from latest) it was time to [switch](https://docs.freebsd.org/en/books/handbook/ports/#pkgng-intro) to the latest branch. The updates will come thick and fast, but with careful locking, you can be in a similar position as with quarterly, but always able to fetch fixes and resolutions to fallouts, along with being closer to the latest versions.
 
 The repository configuration file pointing to quarterly is located in `/etc/pkg/FreeBSD.conf`. Copy this file to `/usr/local/etc/pkg/repos/FreeBSD.conf` then edit so that it reflects 
 
@@ -221,8 +221,9 @@ Next we can start our new service
 
 Launch obsidian and find our notes.
 
----
+![Screenshot of Obsidian working on FreeBSD](/assets/Screenshot.from.2025-06-23.at.00_05_22.737314652.png)
 
+---
 ##### Keeping our local repository updated
 
 To provide updates to `pkg` we will need to update our poudriere ports tree

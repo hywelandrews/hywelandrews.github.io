@@ -1,30 +1,27 @@
 ---
 layout: post
-title: FreeBSD for your laptop 
+title: FreeBSD for your laptop
 author: Hywel
-date:   2025-03-03 11:13:42 
+date: 2025-06-03 11:13:42
 ---
+The last time I ran FreeBSD on a personal system was back in version 4, and since then I’ve mostly been using Debian-based distros on my home servers. Recently, though, a few posts on [c0ffee.net](https://c0ffee.net) inspired me to give FreeBSD another shot on bare metal for everyday use. One thing that can make or break the experience is hardware choice—you really want to pick the laptop with FreeBSD in mind, not the other way around. For my setup, I went with a Lenovo Carbon X1 Gen 5: Intel i7, 8GB of RAM, and integrated Intel graphics. It's light, the battery lasts a good 5 hours and was around $200 for a refurbished model. This unit originally came from Japan, so I had to slap stickers over the Kanji keyboard — a small trade-off for what’s otherwise a great little machine. 
 
-The last time I ran FreeBSD on a personal system was with version 4 and in the intervening years I have spent most of my time on \*nix using Debian based distros. I was inspired to return to running FreeBSD on bare metal for everyday use by posts on [c0ffee.net](https://c0ffee.net), in particular [this](https://www.c0ffee.net/blog/freebsd-on-a-laptop) and [this](https://www.c0ffee.net/blog/openbsd-on-a-laptop). It's important to note that one of the overriding success factors in getting a pleasant FreeBSD experience will be your choice of hardware. Essentially you purchase a laptop after deciding to use FreeBSD. I went with a Lenovo Carbon X1 Gen 7, it's an Intel i7 with 8GB ram and Intel integrated graphics, it's very light and the battery lasts for a good 5 hours. The cost as a refurbished model was $200. The laptops original origin was Japan so I have stickers to cover all the Kanji, but its a small inconvenience for an otherwise excellent machine. 
-
-The main outstanding issue after installation is the WiFi stack does not support 802.11ac/ax networks at full speed; one option for faster mobile internet speeds has been to configure tethering between my iPhone and FreeBSD via USB.   
+The main limitation I’ve run into after installation is that FreeBSD’s WiFi stack doesn’t fully support 802.11ac/ax networks at their top speeds. To get around that, I’ve been using USB tethering with my iPhone, which has turned out to be a reliable way to get faster mobile internet on the go.
 
 Why not explore one of the desktop ready BSD distributions? Well TrueOS, the most prominent, has ceased regular maintenance, and although there is a case for [DragonFly](https://www.dragonflybsd.org/), [Ghost](https://ghostbsd.org/) or [Nomad](https://nomadbsd.org/), I was far more excited to be able to configure the OS from the base install. This led to a deeper understanding of the internals, the configuration, some of the subtleties with Linux and also some of my own assumptions as to what to invest time into and when.
 
----
-
-So where do we start? I recommend downloading the FreeBSD 14.2 RELEASE memstick image and running 
+So where do we start? I recommend downloading the FreeBSD 14.3 RELEASE memstick image and running:
 
 ```zsh 
-sudo dd if=/path/to/FreeBSD-14.2-RELEASE of=/dev/r(IDENTIFIER) bs=1m
+sudo dd if=/path/to/FreeBSD-14.3-RELEASE of=/dev/r(IDENTIFIER) bs=1m
 ```
 
 As mentioned above the installation is self explanatory, but I did chose to use an encrypted root ZFS partition. Ensure your user belongs to the wheel, video and operator groups, otherwise you will be unable to elevate privileges or use an X Server. Log in as your user, and we can begin configuration.
 
 If you have not headed the above advise and finished the installation with a user unable to elevate privileges; reboot the system and enter in Single user mode, ensure you mount the file system in read-write mode `mount -u /` and then run `pw usermod [user_name] -G wheel video operator`.   
- 
-Power
-=====
+
+---
+##### Power
 
 You can check the current battery level with `apm`. First, following along with c0ffee.net we can enable CPU frequency scaling by editing `/etc/rc.conf`.
 
@@ -62,9 +59,7 @@ drm.i915.intel_iommu_enabled="1"
 The final aspect of power saving lies with the embedded usb devices, although from experimentation it seems there is no effect from setting some of the onboard usb devices into power saving mode. To find your usb devices run `usbconfig list`, you can find their current power usage listed at the end and their current `pwr` mode. To change the power mode of for example the Integrated Camera we can run `usbconfig -d ugen0.3 power_save` but notice that even after the mode is changed its power consumption remains the same. This may be due to the hub already switching to power saving mode although I'm not sure how to confirm.
 
 ----
-
-Networking
-=========
+##### Networking
 
 iwm comes configured for the kernel in base, and the below addition to `/etc/rc.conf` is all that is required.
 
@@ -93,9 +88,7 @@ network={
 `doas service NETWORKING restart` to bring our wifi stack up, later I use `wifimgr` a GUI application to manage the multitude of WiFi hotspots I connect to. 
 
 ----
-
-Configuration for the desktop
-============================
+##### Desktop
 
 First lets edit `/boot/loader.conf` for some quality of life changes when using FreeBSD as a desktop system
 
@@ -283,9 +276,7 @@ net.route.netisr_maxqlen=2048
 Rebooting your system will allow for the kernel changes made to take effect, in addition ensure you have TPM disabled in your BIOS if you find suspend on lid close does not work.
 
 ---
-
-Display servers
-===============
+##### Display servers
 
 My original workflow for this machine was just to live with X11 and launch GUI applications into separate sessions, this only requires installing `pkg install xorg` and as mentioned above ensuring your user is part of the video group. This setup lasted for a couple of weeks; the ultimate need for a proper window manager became apparent as the configurations for them to work in a vanilla X Server always felt fragile. 
 
@@ -314,9 +305,7 @@ XDG_SESSION_TYPE=wayland
 ```
 
 ---
-
-Window Managers
-===============
+##### Window Managers
 
 Sway is a new compositor for wayland using the same window tiling philosophy as i3. First we install the following packages for a pleasant experience `pkg install sway swayidle swaylock-effects alacritty dmenu-wayland dmenu`. I've included alacritty here as I think its one of the better terminal emulators, but replace this with your preference.
 
@@ -531,8 +520,8 @@ date=$(date +'%Y-%m-%d %I:%M:%S %p')
 echo ⌨️ $language 📡 $network_ssid 🔊 $volume% ⚡ $battery 🌡️ $cpu°C "|" $date
 ```
 
-Login Managers (or my struggle with them)
-========================================
+---
+##### Login Managers (or my struggle with them)
 
 I was unable to get a login manager to work with FreeBSD + sway, I attempted to use sddm and [ly](https://github.com/fairyglade/ly) but both failed to integrate correctly, and for the time being I've fallen back to launching immediately from the shell using the below from my `.zshrc`.
 
@@ -544,8 +533,8 @@ fi
 
 One final note is the lack of a lockscreen on opening the laptop lid. The default sway config shared above does contain a line for triggering `swaylock` on the `before-sleep` event, but this does not take effect for me, and I have to ensure to use my lock shortcut `$mod + Shift + z` instead. 
 
-Applications
-===========
+---
+##### Applications
 
 Below is the list of applications I run on my machine, it's predominately used for writing (Vim), programming (VSCode, gcc, rust), publishing this blog (Ruby) and consuming an unhealthy amount of internet (chromium). 
 
