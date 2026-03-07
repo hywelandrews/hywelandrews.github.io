@@ -36,7 +36,7 @@ We are using ZFS, so configure the pool name in `/usr/local/etc/poudriere.conf`
 
 Next we need a jail to run our builds, they are typically created per major release per architecture: 
 
-`poudriere jail -c -j 14amd64 -v 14.3-RELEASE`
+`poudriere jail -c -j 15amd64 -v 15.0-RELEASE`
 
 Finally we setup a ports tree 
 
@@ -44,9 +44,11 @@ Finally we setup a ports tree
 
 Now we can build our missing port 
 
-`poudriere bulk -j 14amd64 -p HEAD -b latest -S textproc/obsidian`
+`poudriere bulk -j 15amd64 -p HEAD -b latest -S textproc/obsidian`
 
-Here we are building obsidian in our 14.3 jail for amd64 `-j 14amd64`, using the ports tree attached to the tip of the default branch `-p HEAD`, and using binary packages from the latest branch `-b latest -S` and without rebuilding on dependency changes. These last flags are important to build our package on top of binary instead of from source. Although it is preferred to build from source, as the HEAD of ports and latest branch can still differ, in our case building electron34 and rust dependencies would take 2 days and would not succeed (due to resource constraints).
+Here we are building obsidian in our 15.0 jail for amd64 `-j 15amd64`, using the ports tree attached to the tip of the default branch `-p HEAD`, and using binary packages from the latest branch `-b latest -S` and without rebuilding on dependency changes. These last flags are important to build our package on top of binary instead of from source. Although it is preferred to build from source, as the HEAD of ports and latest branch can still differ, in our case building electron39 and rust dependencies would take 2 days and would not succeed (due to resource constraints).
+
+_Note:_ If you are building against an existing poudriere ports tree; make sure to update this before building bulk with binary packages. Most of the versions will mismatch resulting in source compilation otherwise.
 
 Finally we need to add our local poudriere repo to our local `pkg` manager
 
@@ -54,24 +56,22 @@ Create the file `/usr/local/etc/pkg/repos/poudriere.conf` with the below content
 
 ```config
 local: {
-  url: "file:///usr/local/poudriere/data/packages/14amd64-HEAD",
+  url: "file:///usr/local/poudriere/data/packages/15amd64-HEAD",
   enabled: yes
 }
 ```
 
 Finally update your repositories
 
-`pkg update -u`
+`pkg update -f`
 
 And you should find obsidien
 
 ```bash
 $ pkg search obsidian
-obsidian-1.8.10_4              Powerful and extensible knowledge base application
+obsidian-1.11.73_3             Powerful and extensible knowledge base application
 ```
-
 --- 
-
 #### Where are my files?
 
 I use google drive to sync my obsidian notes between devices (except iOS *\*shakes fist at the clouds*\*) so we need a way to have this mounted after login. Our tool of choice is `rclone` so lets
@@ -226,13 +226,13 @@ Launch obsidian and find our notes.
 ---
 ##### Keeping our local repository updated
 
-To provide updates to `pkg` we will need to update our poudriere ports tree
+To provide updates to `pkg` from our local repository we would need to update our poudriere ports tree. 
 
 `poudriere ports -u -p HEAD`
 
 And rebuild from our jail as before 
 
-`poudriere bulk -j 14amd64 -p HEAD -b latest -S textproc/obsidian`
+`poudriere bulk -j 15amd64 -p HEAD -b latest -S textproc/obsidian`
 
 At this stage I'm happy with the ease at adding further ports to install alongside regular binaries from latest; moving this to my FreeBSD home server and setting up weekly poudriere repository updates will be the next stage.
 
